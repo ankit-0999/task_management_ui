@@ -4,22 +4,29 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/Button';
-import { Plus, FolderKanban, Trash2 } from 'lucide-react';
+import { Plus, FolderKanban, Trash2, Edit2 } from 'lucide-react';
 import { CreateProjectModal, ProjectFormData } from '@/components/CreateProjectModal';
 import api from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 interface Project {
   id: string;
   title: string;
   description: string;
   owner_id: string;
+  status: 'Todo' | 'In-Progress' | 'Completed' | 'On-Hold';
+  start_date: string | null;
+  estimation_date: string | null;
+  closed_date: string | null;
 }
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -35,15 +42,32 @@ export default function ProjectsPage() {
     fetchProjects();
   }, [refreshTrigger]);
 
-  const handleCreateProject = async (data: ProjectFormData) => {
+  const handleCreateOrEditProject = async (data: ProjectFormData) => {
     try {
-      await api.post('/projects/', data);
+      if (editingProject) {
+        await api.put(`/projects/${editingProject.id}`, data);
+        toast.success('Project updated successfully!');
+      } else {
+        await api.post('/projects/', data);
+        toast.success('Project created successfully!');
+      }
       setRefreshTrigger(prev => prev + 1);
-      toast.success('Project created successfully!');
+      setEditingProject(null);
+      setIsModalOpen(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || "Failed to create project");
+      toast.error(error.response?.data?.detail || "Failed to save project");
       throw error;
     }
+  };
+
+  const openEditModal = (project: Project) => {
+    setEditingProject(project);
+    setIsModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setEditingProject(null);
+    setIsModalOpen(true);
   };
 
   const handleDeleteProject = async (projectId: string) => {
@@ -70,7 +94,7 @@ export default function ProjectsPage() {
           <div className="mt-4 sm:mt-0 flex gap-3 w-full sm:w-auto">
             <Button 
               variant="primary" 
-              onClick={() => setIsModalOpen(true)}
+              onClick={openCreateModal}
               className="flex-1 sm:flex-none bg-gradient-to-r from-[#7199D6] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md border-none"
             >
               <Plus className="w-5 h-5 mr-1" />
@@ -96,17 +120,54 @@ export default function ProjectsPage() {
                     </div>
                     <h3 className="font-bold text-lg text-gray-900">{project.title}</h3>
                   </div>
-                  
-                  {/* Delete button appears on hover */}
-                  <button 
-                    onClick={() => handleDeleteProject(project.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                      project.status === 'Completed' ? 'bg-green-50 text-green-700 border-green-200' :
+                      project.status === 'In-Progress' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                      project.status === 'On-Hold' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                      'bg-gray-50 text-gray-700 border-gray-200'
+                    }`}>
+                      {project.status || 'Todo'}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-gray-500 text-sm mb-4 line-clamp-2 min-h-[40px]">{project.description}</p>
-                <Button variant="secondary" className="w-full text-sm">View Board</Button>
+                
+                {/* Dates display (ClickUp inspired) */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {project.start_date && (
+                    <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                      Start: {new Date(project.start_date).toLocaleDateString()}
+                    </span>
+                  )}
+                  {project.estimation_date && (
+                    <span className="text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded border border-blue-100">
+                      Est: {new Date(project.estimation_date).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center mt-2 mb-4">
+                  <p className="text-gray-500 text-sm line-clamp-2 min-h-[40px] flex-1">{project.description}</p>
+                  
+                  {/* Actions appear on hover */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                    <button 
+                      onClick={() => openEditModal(project)}
+                      className="p-2 text-gray-400 hover:text-blue-500 rounded-full hover:bg-blue-50"
+                      title="Edit Project"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteProject(project.id)}
+                      className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50"
+                      title="Delete Project"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <Button variant="secondary" className="w-full text-sm" onClick={() => router.push(`/projects/${project.id}`)}>View Board</Button>
               </div>
             ))
           )}
@@ -115,8 +176,19 @@ export default function ProjectsPage() {
       
       <CreateProjectModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateProject}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingProject(null);
+        }}
+        onSubmit={handleCreateOrEditProject}
+        initialData={editingProject ? { 
+          title: editingProject.title, 
+          description: editingProject.description,
+          status: editingProject.status,
+          start_date: editingProject.start_date,
+          estimation_date: editingProject.estimation_date,
+          closed_date: editingProject.closed_date,
+        } : undefined}
       />
     </DashboardLayout>
   );

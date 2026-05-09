@@ -20,9 +20,9 @@ export function DashboardLayout({ children, userName = 'User' }: DashboardLayout
   };
 
   const navItems = [
-    { name: 'Overview', href: '/', icon: LayoutDashboard },
-    { name: 'Projects', href: '/projects', icon: FolderKanban },
-    { name: 'My Tasks', href: '/tasks', icon: CheckSquare },
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Project Management', href: '/projects', icon: FolderKanban },
+    { name: 'Task Management', href: '/tasks', icon: CheckSquare },
   ];
 
   return (

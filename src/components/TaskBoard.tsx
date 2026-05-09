@@ -7,11 +7,12 @@ import { TaskBoardSkeleton } from './TaskBoardSkeleton';
 import api from '@/lib/api';
 
 interface TaskBoardProps {
-  projectId: number;
+  projectId?: string | number;
   refreshTrigger?: number; // Used to re-fetch when a new task is added
+  onEditTask?: (task: Task) => void;
 }
 
-export function TaskBoard({ projectId, refreshTrigger = 0 }: TaskBoardProps) {
+export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask }: TaskBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +22,8 @@ export function TaskBoard({ projectId, refreshTrigger = 0 }: TaskBoardProps) {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.get(`/tasks?project_id=${projectId}`);
+        const url = projectId ? `/tasks?project_id=${projectId}` : `/tasks/`;
+        const response = await api.get(url);
         setTasks(response.data);
       } catch (err: any) {
         setError(err.response?.data?.detail || 'Failed to fetch tasks.');
@@ -62,7 +64,7 @@ export function TaskBoard({ projectId, refreshTrigger = 0 }: TaskBoardProps) {
         <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
-        <p className="text-gray-500 font-medium">No tasks found for this project.</p>
+        <p className="text-gray-500 font-medium">No tasks found.</p>
         <p className="text-gray-400 text-sm mt-1">Create one to get started.</p>
       </div>
     );
@@ -71,7 +73,12 @@ export function TaskBoard({ projectId, refreshTrigger = 0 }: TaskBoardProps) {
   return (
     <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
       {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} onDelete={() => task.id && handleDeleteTask(task.id)} />
+        <TaskCard 
+          key={task.id} 
+          task={task} 
+          onDelete={() => task.id && handleDeleteTask(task.id)}
+          onEdit={onEditTask ? () => onEditTask(task) : undefined}
+        />
       ))}
     </div>
   );
