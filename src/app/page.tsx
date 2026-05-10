@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Loader } from '@/components/Loader';
 import { FolderKanban, CheckSquare, CheckCircle2, TrendingUp, AlertCircle, Sparkles, ArrowUpRight, Clock3 } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import api from '@/lib/api';
 import { getStoredUserName } from '@/lib/auth';
 
@@ -142,16 +143,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <div className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 shadow-sm">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">Completion</p>
-                <p className="mt-1 text-2xl font-black text-gray-950">{getCompletionPercentage()}%</p>
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 shadow-sm">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">Tasks</p>
-                <p className="mt-1 text-2xl font-black text-gray-950">{stats.total_tasks || 0}</p>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -211,9 +203,9 @@ export default function Dashboard() {
         </div>
 
         {/* Detailed Analytics Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Progress Overview */}
-          <div className="bg-white/85 backdrop-blur-sm p-6 rounded-[28px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] border border-white/70">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Progress Overview - 2 cols (40%) */}
+          <div className="lg:col-span-2 bg-white/85 backdrop-blur-sm p-6 rounded-[28px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] border border-white/70">
             <div className="flex items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-[#7199D6]" />
@@ -224,15 +216,37 @@ export default function Dashboard() {
               </span>
             </div>
             
-            <div className="flex flex-col items-center justify-center gap-5 py-6">
-              <div className="relative h-56 w-56 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#7199D6_0%,#8b5cf6_38%,#22c55e_72%,#e5e7eb_72%_100%)] p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6)]">
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white shadow-inner">
-                  <div className="text-center">
-                    <span className="block text-5xl font-black text-gray-950">{getCompletionPercentage()}%</span>
-                    <p className="mt-1 text-sm font-medium text-gray-500">Completed</p>
-                  </div>
-                </div>
+            <div className="flex flex-col items-center justify-center gap-5 py-8">
+              <div className="w-full h-64 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Completed', value: getCompletionPercentage() },
+                        { name: 'Remaining', value: 100 - getCompletionPercentage() }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      startAngle={180}
+                      endAngle={0}
+                      dataKey="value"
+                      label={false}
+                    >
+                      <Cell fill="#3b82f6" />
+                      <Cell fill="#2336cc" />
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
+              
+              {/* Center Text Overlay */}
+              <div className="flex flex-col items-center -mt-32 relative z-10 mb-12">
+                <span className="block text-5xl font-black text-gray-950">{getCompletionPercentage()}%</span>
+                <p className="mt-1 text-sm font-medium text-gray-500">Completed</p>
+              </div>
+
               <p className="max-w-sm text-center text-sm text-gray-500">
                 {stats.total_tasks === 0
                   ? 'Add tasks to see progress and status trends appear here.'
@@ -242,8 +256,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Status Distribution */}
-          <div className="bg-white/85 backdrop-blur-sm p-6 rounded-[28px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] border border-white/70">
+          {/* Status Distribution - 3 cols (60%) */}
+          <div className="lg:col-span-3 bg-white/85 backdrop-blur-sm p-6 rounded-[28px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] border border-white/70">
             <div className="flex items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-bold text-gray-950">Task Status Distribution</h2>
               <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
@@ -252,52 +266,86 @@ export default function Dashboard() {
               </div>
             </div>
             
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div> Todo
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">{stats.todo_tasks}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${stats.total_tasks ? ((stats.todo_tasks || 0) / stats.total_tasks) * 100 : 0}%` }}></div>
+            <div className="w-full h-80 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { name: 'Todo', value: stats.todo_tasks || 0, fill: '#3b82f6' },
+                    { name: 'In Progress', value: stats.in_progress_tasks || 0, fill: '#f59e0b' },
+                    { name: 'Completed', value: stats.completed_tasks || 0, fill: '#10b981' },
+                    { name: 'Overdue', value: stats.overdue_tasks || 0, fill: '#ef4444' }
+                  ]}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.1)',
+                      padding: '12px'
+                    }}
+                    labelStyle={{ color: '#1f2937', fontWeight: 600 }}
+                    cursor={{ fill: 'rgba(113, 153, 214, 0.1)' }}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    radius={[12, 12, 0, 0]}
+                    isAnimationActive={true}
+                  >
+                    {[
+                      { name: 'Todo', fill: '#3b82f6' },
+                      { name: 'In Progress', fill: '#f59e0b' },
+                      { name: 'Completed', fill: '#10b981' },
+                      { name: 'Overdue', fill: '#ef4444' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Legend */}
+            <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200/70">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded bg-blue-500"></div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Todo</p>
+                  <p className="text-lg font-bold text-gray-950">{stats.todo_tasks}</p>
                 </div>
               </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-orange-400"></div> In Progress
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">{stats.in_progress_tasks}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div className="bg-gradient-to-r from-orange-400 to-amber-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${stats.total_tasks ? ((stats.in_progress_tasks || 0) / stats.total_tasks) * 100 : 0}%` }}></div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded bg-amber-400"></div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">In Progress</p>
+                  <p className="text-lg font-bold text-gray-950">{stats.in_progress_tasks}</p>
                 </div>
               </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div> Completed
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">{stats.completed_tasks}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${stats.total_tasks ? ((stats.completed_tasks || 0) / stats.total_tasks) * 100 : 0}%` }}></div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded bg-green-500"></div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Completed</p>
+                  <p className="text-lg font-bold text-gray-950">{stats.completed_tasks}</p>
                 </div>
               </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div> Overdue
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">{stats.overdue_tasks}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div className="bg-gradient-to-r from-rose-500 to-red-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${stats.total_tasks ? ((stats.overdue_tasks || 0) / stats.total_tasks) * 100 : 0}%` }}></div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded bg-red-500"></div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Overdue</p>
+                  <p className="text-lg font-bold text-gray-950">{stats.overdue_tasks}</p>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Calendar, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Trash2, Eye } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
+import { TaskViewModal } from './TaskViewModal';
 
 type Status = 'Todo' | 'In-Progress' | 'Completed' | 'Overdue' | 'On-Hold';
 
@@ -23,6 +24,7 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const statusBackgroundStyles: Record<Status, string> = {
     'Todo': 'bg-gray-50 border-gray-200',
     'In-Progress': 'bg-yellow-50 border-yellow-200',
@@ -50,6 +52,13 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
           {task.title}
         </h3>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button 
+            onClick={() => setIsViewModalOpen(true)}
+            className="p-1.5 text-gray-400 hover:text-emerald-500 rounded-md hover:bg-emerald-50"
+            title="View Task"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
           {onEdit && (
             <button 
               onClick={onEdit}
@@ -124,6 +133,16 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
           )}
         </div>
       )}
+
+      <TaskViewModal 
+        isOpen={isViewModalOpen}
+        task={task}
+        onClose={() => setIsViewModalOpen(false)}
+        onEdit={() => {
+          setIsViewModalOpen(false);
+          onEdit?.();
+        }}
+      />
     </div>
   );
 }

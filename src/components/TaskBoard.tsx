@@ -8,11 +8,12 @@ import api from '@/lib/api';
 
 interface TaskBoardProps {
   projectId?: string | number;
-  refreshTrigger?: number; // Used to re-fetch when a new task is added
+  refreshTrigger?: number;
   onEditTask?: (task: Task) => void;
+  statusFilter?: string; // ← new
 }
 
-export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask }: TaskBoardProps) {
+export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask, statusFilter }: TaskBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +47,11 @@ export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask }: TaskBoa
     }
   };
 
+  // ← Filter tasks client-side based on selected status
+  const filteredTasks = statusFilter
+    ? tasks.filter(task => task.status === statusFilter)
+    : tasks;
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -74,12 +80,25 @@ export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask }: TaskBoa
     );
   }
 
+  // ← Separate empty state when a filter is active but no tasks match
+  if (filteredTasks.length === 0) {
+    return (
+      <div className="p-12 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl">
+        <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+        </svg>
+        <p className="text-gray-500 font-medium">No <span className="font-semibold">{statusFilter}</span> tasks found.</p>
+        <p className="text-gray-400 text-sm mt-1">Try selecting a different status filter.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-      {tasks.map((task) => (
-        <TaskCard 
-          key={task.id} 
-          task={task} 
+      {filteredTasks.map((task) => (
+        <TaskCard
+          key={task.id}
+          task={task}
           onDelete={() => task.id && handleDeleteTask(task.id)}
           onEdit={onEditTask ? () => onEditTask(task) : undefined}
         />

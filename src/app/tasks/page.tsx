@@ -11,11 +11,39 @@ import { CreateTaskModal, TaskFormData } from '@/components/CreateTaskModal';
 import api from '@/lib/api';
 import { getStoredUserRole, getStoredUserName, UserRole } from '@/lib/auth';
 
+const STATUS_FILTERS = [
+  { label: 'All', value: 'all' },
+  { label: 'Todo', value: 'Todo' },
+  { label: 'In Progress', value: 'In-Progress' },
+  { label: 'Completed', value: 'Completed' },
+  { label: 'Overdue', value: 'Overdue' },
+  { label: 'On Hold', value: 'On-Hold' },
+];
+
+const STATUS_STYLES: Record<string, string> = {
+  all: 'bg-gray-100 text-gray-700 border-gray-300',
+  Todo: 'bg-blue-50 text-blue-700 border-blue-300',
+  'In-Progress': 'bg-yellow-50 text-yellow-700 border-yellow-300',
+  Completed: 'bg-green-50 text-green-700 border-green-300',
+  Overdue: 'bg-red-50 text-red-700 border-red-300',
+  'On-Hold': 'bg-purple-50 text-purple-700 border-purple-300',
+};
+
+const STATUS_ACTIVE_STYLES: Record<string, string> = {
+  all: 'bg-gray-700 text-white border-gray-700',
+  Todo: 'bg-blue-600 text-white border-blue-600',
+  'In-Progress': 'bg-yellow-500 text-white border-yellow-500',
+  Completed: 'bg-green-600 text-white border-green-600',
+  Overdue: 'bg-red-600 text-white border-red-600',
+  'On-Hold': 'bg-purple-600 text-white border-purple-600',
+};
+
 export default function MyTasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [activeFilter, setActiveFilter] = useState('all');
   const displayName = getStoredUserName() || 'User';
 
   useEffect(() => {
@@ -37,7 +65,7 @@ export default function MyTasksPage() {
     } catch (error: any) {
       console.error("Failed to save task", error);
       toast.error(error.response?.data?.detail || "Failed to save task");
-      throw error; 
+      throw error;
     }
   };
 
@@ -47,14 +75,12 @@ export default function MyTasksPage() {
   };
 
   const openEditModal = (task: any) => {
-    // Format dates to yyyy-mm-dd for date input fields
     const formatDate = (dateString: string | null | undefined) => {
       if (!dateString) return '';
       const date = new Date(dateString);
       return date.toISOString().split('T')[0];
     };
 
-    // Normalize status - handle different enum formats
     const normalizeStatus = (status: string) => {
       const statusMap: Record<string, string> = {
         'TODO': 'Todo',
@@ -81,6 +107,7 @@ export default function MyTasksPage() {
   return (
     <DashboardLayout userName={displayName}>
       <div className="max-w-7xl mx-auto space-y-6">
+
         {/* Member Info Banner */}
         {userRole === 'Member' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
@@ -92,6 +119,7 @@ export default function MyTasksPage() {
           </div>
         )}
 
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#7199D6] to-indigo-600 mb-2">
@@ -101,8 +129,8 @@ export default function MyTasksPage() {
           </div>
           <div className="mt-4 sm:mt-0 flex gap-3 w-full sm:w-auto">
             {userRole === 'Admin' && (
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 onClick={openCreateModal}
                 className="flex-1 sm:flex-none bg-gradient-to-r from-[#7199D6] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md border-none"
               >
@@ -113,20 +141,48 @@ export default function MyTasksPage() {
           </div>
         </div>
 
+        {/* Status Filter Bar */}
+        <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-gray-500 mr-2">Filter by Status:</span>
+            {STATUS_FILTERS.map((filter) => {
+              const isActive = activeFilter === filter.value;
+              return (
+                <button
+                  key={filter.value}
+                  onClick={() => setActiveFilter(filter.value)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150
+                    ${isActive
+                      ? STATUS_ACTIVE_STYLES[filter.value]
+                      : `${STATUS_STYLES[filter.value]} hover:opacity-80`
+                    }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Task Board */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-h-[500px]">
-          {/* Omitting projectId to fetch all tasks assigned to the user */}
-          <TaskBoard refreshTrigger={refreshTrigger} onEditTask={openEditModal} />
+          <TaskBoard
+            refreshTrigger={refreshTrigger}
+            onEditTask={openEditModal}
+            statusFilter={activeFilter === 'all' ? undefined : activeFilter}
+          />
         </div>
       </div>
 
-      <CreateTaskModal 
-        isOpen={isModalOpen} 
+      <CreateTaskModal
+        isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
           setEditingTask(null);
-        }} 
+        }}
         onSubmit={handleCreateOrEditTask}
         initialData={editingTask}
+        userRole={userRole}  // ← add this
       />
     </DashboardLayout>
   );
