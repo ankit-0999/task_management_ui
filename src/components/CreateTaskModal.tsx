@@ -25,7 +25,7 @@ interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: TaskFormData) => Promise<void>;
-  initialData?: TaskFormData;
+  initialData?: TaskFormData & { projectName?: string };
   userRole?: string | null; // ← new
 }
 
@@ -95,7 +95,10 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, initialData, userRo
     }`;
 
   // Helper: find label by id for read-only display
-  const getProjectName = (id: string) => projects.find(p => p.id === id)?.title || id || '—';
+  const getProjectName = (id: string) => {
+    if (initialData?.projectName) return initialData.projectName;
+    return projects.find(p => p.id === id)?.title || id || '—';
+  };
   const getUserName = (id: string) => users.find(u => u.id === id)?.name || 'Unassigned';
   const formatDate = (val: string | null | undefined) => val || '—';
 

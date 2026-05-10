@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { TaskCard, Task } from './TaskCard';
 import { Loader, LoaderSkeleton } from './Loader';
+import { ConfirmModal } from './ConfirmModal';
 import api from '@/lib/api';
 
 interface TaskBoardProps {
@@ -17,6 +18,8 @@ export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask, statusFil
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<string | number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -36,14 +39,22 @@ export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask, statusFil
     fetchTasks();
   }, [projectId, refreshTrigger]);
 
-  const handleDeleteTask = async (taskId: number | string) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
+  const handleDeleteClick = (taskId: number | string) => {
+    setTaskToDelete(taskId);
+  };
+
+  const confirmDelete = async () => {
+    if (!taskToDelete) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/tasks/${taskId}`);
-      setTasks(prev => prev.filter(t => t.id !== taskId));
+      await api.delete(`/tasks/${taskToDelete}`);
+      setTasks(prev => prev.filter(t => t.id !== taskToDelete));
       toast.success('Task deleted successfully');
+      setTaskToDelete(null);
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Failed to delete task');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -94,15 +105,28 @@ export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask, statusFil
   }
 
   return (
-    <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-      {filteredTasks.map((task) => (
-        <TaskCard
-          key={task.id}
-          task={task}
-          onDelete={() => task.id && handleDeleteTask(task.id)}
-          onEdit={onEditTask ? () => onEditTask(task) : undefined}
-        />
-      ))}
-    </div>
+    <>
+      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        {filteredTasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onDelete={() => task.id && handleDeleteClick(task.id)}
+            onEdit={onEditTask ? () => onEditTask(task) : undefined}
+          />
+        ))}
+      </div>
+
+      <ConfirmModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+    </>
   );
 }

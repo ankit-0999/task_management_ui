@@ -77,6 +77,7 @@ export default function ProjectBoardPage({ params }: ProjectBoardProps) {
     setEditingTask({
       ...task,
       project_id: String(id),
+      projectName: project?.title,
       assignee_id: task.assignee_id ? String(task.assignee_id) : '',
     });
     setIsModalOpen(true);

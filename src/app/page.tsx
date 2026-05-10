@@ -161,7 +161,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
           <div className="group bg-white/85 backdrop-blur-sm p-6 rounded-[24px] shadow-[0_10px_30px_rgba(15,23,42,0.06)] border border-white/70 flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(129,140,248,0.14)] transition-all">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200/60">
               <CheckSquare className="w-7 h-7" />
@@ -215,7 +215,7 @@ export default function Dashboard() {
                 Live summary
               </span>
             </div>
-            
+
             <div className="flex flex-col items-center justify-center gap-5 py-8">
               <div className="w-full h-64 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
@@ -240,7 +240,7 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              
+
               {/* Center Text Overlay */}
               <div className="flex flex-col items-center -mt-32 relative z-10 mb-12">
                 <span className="block text-5xl font-black text-gray-950">{getCompletionPercentage()}%</span>
@@ -265,7 +265,7 @@ export default function Dashboard() {
                 All Tasks
               </div>
             </div>
-            
+
             <div className="w-full h-80 flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -278,18 +278,18 @@ export default function Dashboard() {
                   margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 500 }}
                     axisLine={false}
                     tickLine={false}
                   />
-                  <YAxis 
+                  <YAxis
                     tick={{ fill: '#6b7280', fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                   />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{
                       backgroundColor: '#fff',
                       border: '1px solid #e5e7eb',
@@ -300,8 +300,8 @@ export default function Dashboard() {
                     labelStyle={{ color: '#1f2937', fontWeight: 600 }}
                     cursor={{ fill: 'rgba(113, 153, 214, 0.1)' }}
                   />
-                  <Bar 
-                    dataKey="value" 
+                  <Bar
+                    dataKey="value"
                     radius={[12, 12, 0, 0]}
                     isAnimationActive={true}
                   >
@@ -363,10 +363,10 @@ export default function Dashboard() {
                 <ArrowUpRight className="h-4 w-4" />
                 Stay on top of priorities
               </div>
-              <button className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#7199D6] to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition-transform hover:-translate-y-0.5">
+              {/* <button className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#7199D6] to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition-transform hover:-translate-y-0.5">
                 <CheckSquare className="h-4 w-4" />
                 New Task
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

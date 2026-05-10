@@ -10,6 +10,7 @@ export interface Task {
   title: string;
   description?: string;
   assigneeName?: string;
+  projectName?: string;
   dueDate: string | null;
   start_date?: string | null;
   estimation_date?: string | null;
@@ -51,7 +52,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         <h3 className="font-medium text-gray-900 text-[15px] leading-snug">
           {task.title}
         </h3>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1">
           <button 
             onClick={() => setIsViewModalOpen(true)}
             className="p-1.5 text-gray-400 hover:text-emerald-500 rounded-md hover:bg-emerald-50"
