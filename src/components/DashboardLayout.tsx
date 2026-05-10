@@ -34,6 +34,14 @@ export function DashboardLayout({ children, userName = 'User' }: DashboardLayout
     let isMounted = true;
 
     const hydrateUserName = async () => {
+      // ── Auth Guard ──────────────────────────────────────────────
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.replace('/login');
+        return;
+      }
+      // ────────────────────────────────────────────────────────────
+
       if (isMounted) {
         setResolvedUserName(userName);
       }
@@ -48,11 +56,6 @@ export function DashboardLayout({ children, userName = 'User' }: DashboardLayout
         if (isMounted) {
           setResolvedUserName(storedName);
         }
-        return;
-      }
-
-      const token = localStorage.getItem('token');
-      if (!token) {
         return;
       }
 
@@ -85,7 +88,8 @@ export function DashboardLayout({ children, userName = 'User' }: DashboardLayout
     return () => {
       isMounted = false;
     };
-  }, [userName]);
+  }, [userName, router]);
+
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
