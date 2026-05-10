@@ -29,6 +29,12 @@ export default function LoginPage() {
       });
       
       localStorage.setItem('token', response.data.access_token);
+      if (response.data.user?.role) {
+        localStorage.setItem('role', response.data.user.role);
+      }
+      if (response.data.user?.name) {
+        localStorage.setItem('user_name', response.data.user.name);
+      }
       router.push('/');
     } catch (err: any) {
       let errorMessage = 'Failed to login';

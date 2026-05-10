@@ -11,7 +11,6 @@ import api from '@/lib/api';
 const taskSchema = z.object({
   title: z.string().min(1, 'Task title is required'),
   description: z.string().optional(),
-  dueDate: z.string().optional().nullable(),
   start_date: z.string().optional().nullable(),
   estimation_date: z.string().optional().nullable(),
   closed_date: z.string().optional().nullable(),
@@ -41,7 +40,6 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, initialData }: Crea
       description: '',
       project_id: '',
       assignee_id: '',
-      dueDate: '',
       start_date: '',
       estimation_date: '',
       closed_date: ''
@@ -59,7 +57,6 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, initialData }: Crea
         description: '',
         project_id: '',
         assignee_id: '',
-        dueDate: '',
         start_date: '',
         estimation_date: '',
         closed_date: ''
@@ -143,17 +140,9 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, initialData }: Crea
                 <option value="Todo">Todo</option>
                 <option value="In-Progress">In Progress</option>
                 <option value="Completed">Completed</option>
+                <option value="Overdue">Overdue</option>
                 <option value="On-Hold">On Hold</option>
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-              <input 
-                type="date"
-                {...register('dueDate')} 
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none transition-colors focus:border-[#7199D6] focus:ring-2 focus:ring-blue-100" 
-              />
             </div>
 
             <div>

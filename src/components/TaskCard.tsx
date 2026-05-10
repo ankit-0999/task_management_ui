@@ -23,7 +23,15 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
-  const statusStyles: Record<Status, string> = {
+  const statusBackgroundStyles: Record<Status, string> = {
+    'Todo': 'bg-gray-50 border-gray-200',
+    'In-Progress': 'bg-yellow-50 border-yellow-200',
+    'Completed': 'bg-green-50 border-green-200',
+    'Overdue': 'bg-red-50 border-red-200',
+    'On-Hold': 'bg-orange-50 border-orange-200',
+  };
+
+  const statusBadgeStyles: Record<Status, string> = {
     'Todo': 'bg-gray-100 text-gray-800 border-gray-200',
     'In-Progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
     'Completed': 'bg-green-100 text-green-800 border-green-200',
@@ -31,10 +39,11 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
     'On-Hold': 'bg-orange-100 text-orange-800 border-orange-200',
   };
 
-  const currentStyle = statusStyles[task.status] || statusStyles['Todo'];
+  const currentBackgroundStyle = statusBackgroundStyles[task.status] || statusBackgroundStyles['Todo'];
+  const currentBadgeStyle = statusBadgeStyles[task.status] || statusBadgeStyles['Todo'];
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow relative group flex flex-col gap-3">
+    <div className={`p-4 rounded-xl border hover:shadow-md transition-shadow relative group flex flex-col gap-3 ${currentBackgroundStyle}`}>
       {/* Header: Title and Delete icon */}
       <div className="flex justify-between items-start gap-2">
         <h3 className="font-medium text-gray-900 text-[15px] leading-snug">
@@ -70,7 +79,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
       {/* Middle Row: Avatar, Due Date, Status */}
       <div className="flex items-center gap-2 mt-1 flex-wrap">
         {/* Avatar and Name */}
-        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-full pl-1 pr-3 py-1 shadow-sm" title={task.assigneeName || 'Unassigned'}>
+        <div className="flex items-center bg-white border border-gray-200 rounded-full pl-1 pr-3 py-1 shadow-sm" title={task.assigneeName || 'Unassigned'}>
           <div className="w-6 h-6 rounded-full bg-[#938237] text-white flex items-center justify-center text-xs font-semibold mr-2">
             {task.assigneeName ? task.assigneeName.substring(0, 2).toUpperCase() : 'U'}
           </div>
@@ -86,7 +95,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         )}
 
         {/* Status */}
-        <div className={`flex items-center gap-1 border rounded-md px-2 py-1 text-[13px] font-medium shadow-sm ${currentStyle}`}>
+        <div className={`flex items-center gap-1 border rounded-md px-2 py-1 text-[13px] font-medium shadow-sm ${currentBadgeStyle}`}>
           <div className="w-2 h-2 rounded-full currentColor opacity-70"></div>
           <span>{task.status}</span>
         </div>

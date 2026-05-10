@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { Loader } from '@/components/Loader';
 import { Button } from '@/components/Button';
 import { Plus, FolderKanban, Trash2, Edit2 } from 'lucide-react';
 import { CreateProjectModal, ProjectFormData } from '@/components/CreateProjectModal';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { getStoredUserRole, getStoredUserName, UserRole } from '@/lib/auth';
 
 interface Project {
   id: string;
@@ -26,7 +28,13 @@ export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const router = useRouter();
+  const displayName = getStoredUserName() || 'User';
+
+  useEffect(() => {
+    setUserRole(getStoredUserRole());
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -82,30 +90,50 @@ export default function ProjectsPage() {
   };
 
   return (
-    <DashboardLayout userName="Ankit">
+    <DashboardLayout userName={displayName}>
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Member Info Banner */}
+        {userRole === 'Member' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+            <div className="w-5 h-5 bg-blue-500 rounded-full flex-shrink-0 mt-0.5"></div>
+            <div>
+              <h3 className="font-semibold text-blue-900">Member Access</h3>
+              <p className="text-sm text-blue-800">You can view projects you're a member of, but only admins can create or edit projects.</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#7199D6] to-indigo-600 mb-2">
               Projects
             </h1>
-            <p className="text-gray-500 font-medium">Manage all your team's ongoing projects.</p>
+            <p className="text-gray-500 font-medium">
+              {userRole === 'Member' 
+                ? 'Your assigned projects.' 
+                : 'Manage all your team\'s ongoing projects.'
+              }
+            </p>
           </div>
           <div className="mt-4 sm:mt-0 flex gap-3 w-full sm:w-auto">
-            <Button 
-              variant="primary" 
-              onClick={openCreateModal}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-[#7199D6] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md border-none"
-            >
-              <Plus className="w-5 h-5 mr-1" />
-              New Project
-            </Button>
+            {userRole === 'Admin' && (
+              <Button 
+                variant="primary" 
+                onClick={openCreateModal}
+                className="flex-1 sm:flex-none bg-gradient-to-r from-[#7199D6] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md border-none"
+              >
+                <Plus className="w-5 h-5 mr-1" />
+                New Project
+              </Button>
+            )}
           </div>
         </div>
 
         <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {loading ? (
-            <p>Loading projects...</p>
+            <div className="col-span-full flex justify-center py-12">
+              <Loader size="lg" text="Loading projects..." />
+            </div>
           ) : projects.length === 0 ? (
             <div className="col-span-full p-12 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl">
               <p className="text-gray-500 font-medium">No projects found.</p>
@@ -149,23 +177,25 @@ export default function ProjectsPage() {
                 <div className="flex justify-between items-center mt-2 mb-4">
                   <p className="text-gray-500 text-sm line-clamp-2 min-h-[40px] flex-1">{project.description}</p>
                   
-                  {/* Actions appear on hover */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
-                    <button 
-                      onClick={() => openEditModal(project)}
-                      className="p-2 text-gray-400 hover:text-blue-500 rounded-full hover:bg-blue-50"
-                      title="Edit Project"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteProject(project.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50"
+                  {/* Actions appear on hover - only for Admins */}
+                  {userRole === 'Admin' && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                      <button 
+                        onClick={() => openEditModal(project)}
+                        className="p-2 text-gray-400 hover:text-blue-500 rounded-full hover:bg-blue-50"
+                        title="Edit Project"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteProject(project.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50"
                       title="Delete Project"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                        >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <Button variant="secondary" className="w-full text-sm" onClick={() => router.push(`/projects/${project.id}`)}>View Board</Button>
               </div>

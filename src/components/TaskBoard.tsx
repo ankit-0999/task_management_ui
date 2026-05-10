@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { TaskCard, Task } from './TaskCard';
-import { TaskBoardSkeleton } from './TaskBoardSkeleton';
+import { Loader, LoaderSkeleton } from './Loader';
 import api from '@/lib/api';
 
 interface TaskBoardProps {
@@ -47,7 +47,11 @@ export function TaskBoard({ projectId, refreshTrigger = 0, onEditTask }: TaskBoa
   };
 
   if (loading) {
-    return <TaskBoardSkeleton />;
+    return (
+      <div className="space-y-4">
+        <Loader size="md" text="Loading tasks..." />
+      </div>
+    );
   }
 
   if (error) {

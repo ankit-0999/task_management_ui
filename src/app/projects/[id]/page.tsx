@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { Loader } from '@/components/Loader';
 import { TaskBoard } from '@/components/TaskBoard';
 import { Button } from '@/components/Button';
 import { Plus, ArrowLeft } from 'lucide-react';
@@ -9,6 +10,7 @@ import { CreateTaskModal, TaskFormData } from '@/components/CreateTaskModal';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { getStoredUserName } from '@/lib/auth';
 
 interface ProjectBoardProps {
   params: Promise<{ id: string }>;
@@ -17,20 +19,25 @@ interface ProjectBoardProps {
 export default function ProjectBoardPage({ params }: ProjectBoardProps) {
   const router = useRouter();
   const { id } = use(params);
+  const displayName = getStoredUserName() || 'User';
   
   const [project, setProject] = useState<{ title: string; description: string } | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchProject = async () => {
+      setLoading(true);
       try {
         const res = await api.get(`/projects/${id}`);
         setProject(res.data);
       } catch (err) {
         console.error('Failed to load project details', err);
         toast.error("Failed to load project details");
+      } finally {
+        setLoading(false);
       }
     };
     fetchProject();
@@ -76,7 +83,12 @@ export default function ProjectBoardPage({ params }: ProjectBoardProps) {
   };
 
   return (
-    <DashboardLayout userName="Admin">
+    <DashboardLayout userName={displayName}>
+      {loading ? (
+        <div className="flex items-center justify-center h-[60vh]">
+          <Loader size="lg" text="Loading project..." />
+        </div>
+      ) : (
       <div className="max-w-7xl mx-auto space-y-6">
         
         <button 
@@ -89,7 +101,7 @@ export default function ProjectBoardPage({ params }: ProjectBoardProps) {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#7199D6] to-indigo-600 mb-2">
-              {project ? project.title : 'Loading...'} Board
+              {project?.title} Board
             </h1>
             <p className="text-gray-500 font-medium">{project?.description || 'Project Task Board'}</p>
           </div>
@@ -109,6 +121,7 @@ export default function ProjectBoardPage({ params }: ProjectBoardProps) {
           <TaskBoard projectId={id} refreshTrigger={refreshTrigger} onEditTask={openEditModal} />
         </div>
       </div>
+      )}
 
       <CreateTaskModal 
         isOpen={isModalOpen} 

@@ -40,6 +40,12 @@ export default function SignupPage() {
       });
       
       localStorage.setItem('token', loginRes.data.access_token);
+      if (loginRes.data.user?.role) {
+        localStorage.setItem('role', loginRes.data.user.role);
+      }
+      if (loginRes.data.user?.name) {
+        localStorage.setItem('user_name', loginRes.data.user.name);
+      }
       router.push('/');
     } catch (err: any) {
       let errorMessage = 'Failed to sign up';
