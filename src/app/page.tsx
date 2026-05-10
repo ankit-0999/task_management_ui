@@ -216,35 +216,34 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div className="flex flex-col items-center justify-center gap-5 py-8">
-              <div className="w-full h-64 flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center gap-5 py-4">
+              <div className="relative w-full h-64 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={[
-                        { name: 'Completed', value: getCompletionPercentage() },
-                        { name: 'Remaining', value: 100 - getCompletionPercentage() }
+                        { name: 'Completed', value: getCompletionPercentage() || 0 },
+                        { name: 'Remaining', value: Math.max(100 - getCompletionPercentage(), 0) }
                       ]}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
                       outerRadius={90}
-                      startAngle={180}
-                      endAngle={0}
                       dataKey="value"
                       label={false}
+                      strokeWidth={0}
                     >
                       <Cell fill="#3b82f6" />
-                      <Cell fill="#2336cc" />
+                      <Cell fill="#e5e7eb" />
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
 
-              {/* Center Text Overlay */}
-              <div className="flex flex-col items-center -mt-32 relative z-10 mb-12">
-                <span className="block text-5xl font-black text-gray-950">{getCompletionPercentage()}%</span>
-                <p className="mt-1 text-sm font-medium text-gray-500">Completed</p>
+                {/* Center text — absolutely positioned inside the donut hole */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-4xl font-black text-gray-950">{getCompletionPercentage()}%</span>
+                  <p className="mt-1 text-sm font-medium text-gray-500">Completed</p>
+                </div>
               </div>
 
               <p className="max-w-sm text-center text-sm text-gray-500">

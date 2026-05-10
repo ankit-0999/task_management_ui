@@ -8,6 +8,7 @@ import { Button } from '@/components/Button';
 import { Plus, FolderKanban, Trash2, Edit2, Eye } from 'lucide-react';
 import { CreateProjectModal, ProjectFormData } from '@/components/CreateProjectModal';
 import { ProjectViewModal } from '@/components/ProjectViewModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { getStoredUserRole, getStoredUserName, UserRole } from '@/lib/auth';
@@ -32,6 +33,8 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const displayName = getStoredUserName() || 'User';
 
@@ -81,14 +84,18 @@ export default function ProjectsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    if (!window.confirm("Are you sure you want to delete this project? All tasks inside will be lost.")) return;
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/projects/${projectId}`);
+      await api.delete(`/projects/${projectToDelete}`);
       setRefreshTrigger(prev => prev + 1);
       toast.success('Project deleted successfully!');
+      setProjectToDelete(null);
     } catch (error: any) {
       toast.error(error.response?.data?.detail || "Failed to delete project");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -191,10 +198,10 @@ export default function ProjectsPage() {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
-                        onClick={() => handleDeleteProject(project.id)}
+                        onClick={() => setProjectToDelete(project.id)}
                         className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50"
-                      title="Delete Project"
-                        >
+                        title="Delete Project"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -222,6 +229,16 @@ export default function ProjectsPage() {
           estimation_date: editingProject.estimation_date,
           closed_date: editingProject.closed_date,
         } : undefined}
+      />
+      <ConfirmModal
+        isOpen={!!projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        onConfirm={handleDeleteProject}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? All tasks inside will be permanently lost."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
       />
     </DashboardLayout>
   );
